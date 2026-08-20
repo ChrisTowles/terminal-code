@@ -10,7 +10,7 @@ import path from "node:path";
 
 import { BROWSER_HOME, RUNTIME_DIR, VENDOR_DIR } from "./paths";
 
-export const PINNED_VERSION = "v0.5.8";
+export const PINNED_VERSION = "ssh-proxy-2ee5f71";
 
 const RELEASE_ORIGIN = process.env.TODE_RELEASE_ORIGIN ?? "https://terminal-browser.sh/install";
 
