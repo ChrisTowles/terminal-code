@@ -72,24 +72,38 @@ function writeBundle(
   write("version", `${version}\n`);
   write("palette.json", `${JSON.stringify(palette)}\n`);
   write(
-    "setup",
+    "ensure",
     `#!/bin/sh
 set -e
 tode="$HOME/.local/bin/tode"
-want="$(cat ./version)"
+want="$(cat "$(dirname "$0")/version")"
 have="$("$tode" --version 2>/dev/null || true)"
-serves() { "$tode" --help 2>/dev/null | grep -q -- --serve; }
-if [ -z "$have" ] || { [ "$want" != dev ] && [ "$have" != "$want" ]; } || ! serves; then
-  curl -fsSL https://tode.sh/install | bash
+if [ "$want" = dev ]; then
+  [ -n "$have" ] || curl -fsSL https://tode.sh/install/dev | bash
+elif [ "$have" != "$want" ]; then
+  curl -fsSL "https://tode.sh/install/v/$want" | bash
 fi
-serves || { echo "the tode release on this server does not support --serve yet" >&2; exit 1; }
-"$tode" --serve --prepare --palette "$(pwd)/palette.json"
+"$tode" --help 2>/dev/null | grep -q -- --serve || {
+  echo "the tode on this server ($("$tode" --version 2>/dev/null)) does not support --serve" >&2
+  exit 1
+}
+`,
+    true,
+  );
+  write(
+    "setup",
+    `#!/bin/sh
+set -e
+./ensure
+"$HOME/.local/bin/tode" --serve --prepare --palette "$(pwd)/palette.json"
 `,
     true,
   );
   write(
     "start",
     `#!/bin/sh
+set -e
+./ensure
 here="$(pwd)"
 cd "$HOME"
 exec "$HOME/.local/bin/tode" --serve --palette "$here/palette.json"${
